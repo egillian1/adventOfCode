@@ -32,7 +32,16 @@ def parse_line(line):
 
     return int(split[1]), int(split[3]), int(split[5])
 
-def move_stacks(stacks, quantity, from_idx, to_idx):
+def move_stacks(stacks, quantity, from_idx, to_idx, one_move = False):
+    if one_move:
+        to_move = []
+        for i in range(quantity):
+            moved_crate = stacks[from_idx].pop()
+            to_move.append(moved_crate)
+        for crate in reversed(to_move):
+            stacks[to_idx].append(crate)
+        return
+
     for i in range(quantity):
         moved_crate = stacks[from_idx].pop()
         stacks[to_idx].append(moved_crate)
@@ -50,7 +59,7 @@ for line in stripped:
         break
 
     quantity, from_stack, to_stack = parse_line(line)
-    move_stacks(stacks, quantity, from_stack, to_stack)
+    move_stacks(stacks, quantity, from_stack, to_stack, True)
 
 print(stacks)
 print_tops(stacks)
