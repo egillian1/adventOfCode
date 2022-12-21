@@ -14,10 +14,17 @@ def getPriority(char):
         return ord(char) - uppercase_ascii_offset + alphabet_offset
     
 total = 0
+groups = []
+group_total = 0
 
-for line in stripped:
+for idx, line in enumerate(stripped):
     if len(line) == 0:
         break
+
+    if idx % 3 == 0:
+        groups.append([])
+
+    groups[len(groups) - 1].append(line)
 
     halfway = int(len(line) / 2)
     
@@ -29,4 +36,11 @@ for line in stripped:
             total += getPriority(char)
             break
 
+for group in groups:
+    for char in group[0]:
+        if char in group[1] and char in group[2]:
+            group_total += getPriority(char)
+            break
+
 print(total)
+print(group_total)
