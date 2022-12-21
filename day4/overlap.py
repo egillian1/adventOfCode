@@ -23,6 +23,18 @@ def contains_range(first, second):
 
     return False
 
+def ranges_overlap(first, second):
+    # First range is contained within second range
+    if first["start"] >= second["start"] and first["start"] <= second["end"]:
+        return True
+
+    # Second range is contained withing first range
+    if second["start"] >= first["start"] and second["start"] <= first["end"]:
+        return True
+
+    return False
+
+ranges_contained = 0
 overlaps = 0
 
 for line in stripped:
@@ -32,6 +44,10 @@ for line in stripped:
     first_range, second_range = parse_line(line)
 
     if contains_range(first_range, second_range):
-        overlaps += 1    
+        ranges_contained += 1    
+
+    if ranges_overlap(first_range, second_range):
+        overlaps += 1
 
 print(overlaps)
+print(ranges_contained)
