@@ -22,10 +22,8 @@ class Monkey:
             return self.value
 
         # Calculate left and right monkey values before proceeding
-        print(self.left_monkey, self.right_monkey)
         self.left_monkey.evaluate_monkey()
         self.right_monkey.evaluate_monkey()
-        print(self.left_monkey, self.right_monkey)
         
         # Monkey has both values needed to calculate its own value
         if self.operand == "+":
@@ -41,6 +39,19 @@ class Monkey:
     
         return self.value
 
+    def contains_human(self):
+        if self.name == "humn":
+            return True
+            
+        left_has_human = False
+        right_has_human = False
+        if self.left_monkey != None:
+            left_has_human = self.left_monkey.contains_human()
+        if self.right_monkey != None:
+            right_has_human = self.right_monkey.contains_human()
+
+        return left_has_human or right_has_human
+
 def parse_monkey(line):
     split = line.split(" ")
     name = split[0].replace(':', '')
@@ -50,23 +61,74 @@ def parse_monkey(line):
     else:
         return Monkey(name, None, split[2], split[1], split[3], None, None)
 
-monkey_table = {}
-for line in stripped:
-    if len(line) == 0:
+def build_monkey_tree(stripped, human_value = None):
+    monkey_table = {}
+    for line in stripped:
+        if len(line) == 0:
+            break
+
+        monkey = parse_monkey(line)
+        monkey_table[monkey.name] = monkey
+
+    if human_value != None:
+        monkey_table["humn"].value = human_value
+
+    for key in monkey_table.keys():    
+        top_monkey = monkey_table[key]
+        if top_monkey.value != None:
+            continue
+
+        top_monkey.left_monkey = monkey_table[top_monkey.left_name]
+        top_monkey.right_monkey = monkey_table[top_monkey.right_name]
+
+    return monkey_table["root"]
+
+def get_left_monkey_val(stripped, human_value = None):
+    root = build_monkey_tree(stripped, human_value)
+    return root.left_monkey.evaluate_monkey()
+
+# Gimme that number, monkey
+root = build_monkey_tree(stripped)
+print(root.evaluate_monkey())
+
+# Left tree has the human, so that's the one to mess around with, while keeping
+# the right monkey's value as the target
+print("left has human", root.left_monkey.contains_human())
+print("right has human", root.right_monkey.contains_human())
+
+target = root.right_monkey.value
+print("target for left", target)
+
+# An increase in the human value decreases the value of the left tree. Casting our net
+# wide, we can start with a minimum and max value that encapsulate our target 
+minimum = -10e5
+maximum = 10e15
+print(get_left_monkey_val(stripped, minimum))
+print(get_left_monkey_val(stripped, maximum))
+
+# Now start looking via binary search for an integer that will get us to the target
+delta = 0.05
+iterations = 0
+max_iterations = 100000
+current = (minimum + maximum) / 2
+
+while True:
+    current = (minimum + maximum) / 2
+    current_val = get_left_monkey_val(stripped, current)
+
+    if abs(get_left_monkey_val(stripped, current) - target) < delta:
         break
 
-    monkey = parse_monkey(line)
-    monkey_table[monkey.name] = monkey
+    if iterations == max_iterations:
+        print("max iterations hit")
+        break
 
+    if current_val > target:
+        minimum = current
+    else:
+        maximum = current
+    
+    iterations += 1
 
-for key in monkey_table.keys():    
-    top_monkey = monkey_table[key]
-    print(top_monkey)
-    if top_monkey.value != None:
-        continue
-
-    top_monkey.left_monkey = monkey_table[top_monkey.left_name]
-    top_monkey.right_monkey = monkey_table[top_monkey.right_name]
-    print(top_monkey)
-
-print(monkey_table["root"].evaluate_monkey())
+print(current)
+print(get_left_monkey_val(stripped, current))
